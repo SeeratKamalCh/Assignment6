@@ -65,7 +65,6 @@ def mark_image_points(image):
         x= image_points[i][0]
         y = image_points[i][1]
         cv2.circle(image, (x, y), 3, 255, -1)
-    show_image(image)
     return image_points
 
 # function to mark the corresponding real word points of the image points
@@ -162,7 +161,7 @@ def QR_decomposition(matrix_P):
     inv = np.linalg.inv(K)
     # Calculate Translation vector
     T = np.matmul(-inv, matrix_P[:, 3])
-    return K, R
+    return K, R, T
 
 # Calculate focal length of camera
 def find_focal_length(image, matrix_K):
@@ -201,7 +200,6 @@ def calculate_points(world_points, matrix_P, image):
         x= original_points[i][0]
         y = original_points[i][1]
         cv2.circle(image, (int(x), int(y)), 3, (0,0,255), -1)
-    show_image(image)
     return original_points
 
 
@@ -227,23 +225,28 @@ def projection_error(image_points, original_points):
 def caliberation():
     image = read_image()
     c_matrix = generate_c_matrix(image)
+    show_image(image)
     p_matrix = SVD_right_null(c_matrix)
     center = find_center(p_matrix)
-    K, R = QR_decomposition(p_matrix)
+    K, R, T = QR_decomposition(p_matrix)
     focal, focal2 = find_focal_length(image, K)
     image_points = mark_image_points(image)
     world_points = mark_world_points()
     original_points = calculate_points(world_points, p_matrix, image)
+    show_image(image)
     error = projection_error(image_points, original_points)
     print("Intrinsic K\n",K)
     print("********************")
     print("Extrinsic R\n", R)
+    print("********************")
+    print("Translation T\n", T)
     print("********************")
     print("Projection matrix\n", p_matrix)
     print("********************")
     # should be between 27 to 83
     print("focal length 1: ", focal)
     print("focal length 2: ", focal2)
+    
     
 
 caliberation()
